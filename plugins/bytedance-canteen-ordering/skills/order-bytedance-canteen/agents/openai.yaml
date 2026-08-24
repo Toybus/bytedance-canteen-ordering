@@ -1,0 +1,4 @@
+interface:
+  display_name: "字节餐厅订餐"
+  short_description: "学习并展示个人偏好，自主完成字节餐厅订餐与安全换餐"
+  default_prompt: "使用 $order-bytedance-canteen 初始化我的偏好并处理下一个可订周，只在精确提交或换餐前让我确认。"

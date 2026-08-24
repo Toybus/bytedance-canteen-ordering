@@ -1,0 +1,189 @@
+{
+  "schema_version": 5,
+  "identity": {
+    "timezone": "America/Los_Angeles",
+    "default_building": ""
+  },
+  "ordering_window": {
+    "next_week_opens_weekday": 2,
+    "next_week_opens_time": "10:00",
+    "target_week_offset_days": 6
+  },
+  "runtime_policy": {
+    "when_window_closed": "schedule_resume",
+    "automation_preference": "thread_heartbeat",
+    "open_check_grace_minutes": 2,
+    "retry_minutes": 15,
+    "max_open_delay_hours": 4,
+    "confirmation_scope": "execution_manifest"
+  },
+  "interaction_policy": {
+    "selection_mode": "autonomous",
+    "review_mode": "exceptions_only",
+    "normal_order_confirmation": "single_execution_manifest",
+    "replacement_confirmation": "single_exact_swap",
+    "user_response_token": "✅"
+  },
+  "experience_policy": {
+    "preference_visibility": "relevant_by_default",
+    "show_preference_delta": true,
+    "next_actions_limit": 3
+  },
+  "experience_state": {
+    "onboarding_version_shown": 0,
+    "onboarding_shown_at": null
+  },
+  "monitoring_policy": {
+    "activation": "offer_for_provisional",
+    "missing_slot_release_monitoring": "auto_for_requested_coverage",
+    "minimum_improvement_points": 15,
+    "auto_monitor_below_score": 60,
+    "stop_before_pickup_minutes": 15,
+    "continue_after_regular_cutoff_for_releases": true,
+    "max_active_monitors": 5,
+    "effort_mode": "balanced",
+    "cadence": {
+      "mode": "adaptive",
+      "bands": [
+        {
+          "remaining_hours_gte": 72,
+          "interval_minutes": 480
+        },
+        {
+          "remaining_hours_gte": 24,
+          "interval_minutes": 240
+        },
+        {
+          "remaining_hours_gte": 6,
+          "interval_minutes": 60
+        },
+        {
+          "remaining_hours_gte": 2,
+          "interval_minutes": 30
+        },
+        {
+          "remaining_hours_gte": 0,
+          "interval_minutes": 15
+        }
+      ],
+      "min_interval_minutes": 10,
+      "max_interval_minutes": 720,
+      "no_change_backoff_after": 3,
+      "no_change_backoff_multiplier": 1.5,
+      "high_regret_score_below": 40
+    },
+    "replacement_mode": "confirm_exact_swap",
+    "recovery_sequence": [
+      "original_order",
+      "confirmed_fallback"
+    ]
+  },
+  "state_management": {
+    "scope": "user",
+    "canonical_profile": true,
+    "legacy_sources": [],
+    "legacy_source_fingerprints": {},
+    "last_merged_at": null,
+    "preference_conflicts": []
+  },
+  "coverage": {
+    "weekdays": [1, 2, 3, 4, 5],
+    "lunch": "all_open_workdays",
+    "dinner": "all_open_workdays"
+  },
+  "supported_scope": {
+    "buildings": ["Lincoln Square North"],
+    "unsupported_behavior": "stop_before_transaction"
+  },
+  "logistics_preferences": {
+    "explicit_pickup_rankings": {
+      "lunch": [],
+      "dinner": []
+    },
+    "explicit_contexts": [],
+    "contextual_pickup_affinity": []
+  },
+  "preferences": {
+    "explicit": {
+      "likes": [],
+      "dislikes": [],
+      "variant_allowances": [],
+      "restrictions": []
+    },
+    "inferred": {
+      "cuisines": [],
+      "proteins": [],
+      "flavors": [],
+      "formats": [],
+      "completed_dish_affinity": [],
+      "dish_family_affinity": []
+    },
+    "deprioritized": []
+  },
+  "preference_learning": {
+    "cold_start": {
+      "mode": "one_compact_optional",
+      "allow_skip": true,
+      "continue_when_history_incomplete": true
+    },
+    "calibration": {
+      "trigger": "preference_relevant_change",
+      "question_limit_per_event": 1,
+      "unanswered_behavior": "no_update",
+      "post_first_order": true
+    },
+    "forgotten_dishes": [],
+    "applied_delta_ids": []
+  },
+  "decision_policy": {
+    "avoid_exact_repeat_within_week": true,
+    "prefer_dish_over_small_pickup_difference": true,
+    "prefer_known_good_dishes_over_novel_candidates": true,
+    "do_not_generalize_specific_dish_history_to_broad_protein": true,
+    "known_bad_pickup_slots": [],
+    "require_exception_confirmation": true
+  },
+  "confirmation_policy": {
+    "submit": "required",
+    "cancel": "required",
+    "release": "required"
+  },
+  "paths": {
+    "site_guide_path": "",
+    "run_log_dir": "",
+    "monitor_dir": ""
+  },
+  "history_evidence": {
+    "last_analyzed_at": null,
+    "analysis_period": {
+      "start": null,
+      "end": null,
+      "context": "unknown"
+    },
+    "orders_sampled": 0,
+    "workdays_sampled": 0,
+    "status_counts": {
+      "completed": 0,
+      "released": 0,
+      "discarded": 0,
+      "other": 0
+    },
+    "meal_counts": {
+      "lunch": 0,
+      "dinner": 0
+    },
+    "completed_meal_counts": {
+      "lunch": 0,
+      "dinner": 0
+    },
+    "monthly_order_counts": {},
+    "collection": {
+      "complete": false,
+      "all_statuses": false,
+      "reached_end": false,
+      "timezone_verified": false,
+      "method": "not_started"
+    },
+    "pickup_outcomes": []
+  }
+}

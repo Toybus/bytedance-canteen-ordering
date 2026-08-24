@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "saved_at": null,
+  "original_request": "",
+  "target_week": "",
+  "coverage": {
+    "weekdays": [],
+    "lunch": false,
+    "dinner": false
+  },
+  "profile_path": "",
+  "lifecycle": {
+    "state": "needs_recovery",
+    "reason": "",
+    "next_check_at": null
+  },
+  "occupied_slots": [],
+  "confirmation": {
+    "obtained": false,
+    "scope": "execution_manifest"
+  }
+}

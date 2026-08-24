@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "monitor_id": "",
+  "state": "active",
+  "mode": "improve_existing",
+  "slot": {
+    "date": "",
+    "meal": "lunch",
+    "building": ""
+  },
+  "current_order": null,
+  "started_at": null,
+  "regular_order_cutoff_at": null,
+  "pickup_start_at": null,
+  "stop_at": null,
+  "window_phase": "regular_window",
+  "policy_snapshot": {
+    "minimum_improvement_points": 15,
+    "stop_before_pickup_minutes": 15,
+    "continue_after_regular_cutoff_for_releases": true,
+    "effort_mode": "balanced",
+    "cadence": {
+      "mode": "adaptive",
+      "bands": [],
+      "min_interval_minutes": 10,
+      "max_interval_minutes": 720,
+      "no_change_backoff_after": 3,
+      "no_change_backoff_multiplier": 1.5,
+      "high_regret_score_below": 40
+    },
+    "replacement_mode": "confirm_exact_swap",
+    "recovery_sequence": [
+      "original_order",
+      "confirmed_fallback"
+    ]
+  },
+  "schedule": {
+    "mode": "adaptive",
+    "last_checked_at": null,
+    "next_check_at": null,
+    "last_interval_minutes": null,
+    "consecutive_no_change": 0,
+    "recent_inventory_change": false,
+    "reason_codes": []
+  },
+  "best_observation": null,
+  "pending_swap": null,
+  "automation": {
+    "id": null,
+    "scheduled_for": null,
+    "status": "not_created"
+  },
+  "events": []
+}
