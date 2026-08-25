@@ -383,12 +383,14 @@ class LifecycleAndActionTests(unittest.TestCase):
                 "open",
             )
 
-            self.assertEqual(result["state"], "submit_approval_pending")
-            self.assertEqual(result["action"], "emit_release_submit_manifest")
+            self.assertEqual(result["state"], "submitting")
             self.assertEqual(
-                result["confirmation_scope"],
-                "single_execution_manifest",
+                result["action"],
+                "submit_released_candidate_then_report",
             )
+            self.assertFalse(result["confirmation_required"])
+            self.assertIsNone(result["confirmation_scope"])
+            self.assertEqual(result["receipt_scope"], "post_submit_receipt")
 
     def test_released_inventory_can_improve_an_existing_order(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

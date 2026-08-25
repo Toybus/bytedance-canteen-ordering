@@ -38,9 +38,9 @@ def output(
         "expected_open": expected_open.isoformat(),
         "next_check_at": next_check_at.isoformat() if next_check_at else None,
         "remaining_slots": remaining_slots,
-        "confirmation": {
-            "obtained": False,
-            "scope": "execution_manifest",
+        "normal_order": {
+            "authorization": "delegated",
+            "receipt": "after_submit",
         },
     }
     if reason:

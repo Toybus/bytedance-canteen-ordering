@@ -338,8 +338,8 @@ def analyze_history(payload: dict) -> dict:
 
 
 def apply_analysis(profile: dict, result: dict, force_partial: bool) -> dict:
-    if profile.get("schema_version") != 5:
-        raise ValueError("profile schema_version must be 5")
+    if profile.get("schema_version") != 6:
+        raise ValueError("profile schema_version must be 6")
     incoming = result["analysis"]["history_evidence"]
     current = profile.get("history_evidence", {})
     current_complete = current.get("collection", {}).get("complete") is True
@@ -406,8 +406,8 @@ def string_set(values: object) -> set[str]:
 
 
 def rank_candidates(profile: dict, payload: dict) -> dict:
-    if profile.get("schema_version") != 5:
-        raise ValueError("profile schema_version must be 5")
+    if profile.get("schema_version") != 6:
+        raise ValueError("profile schema_version must be 6")
     candidates = payload.get("candidates")
     context = payload.get("context", {})
     if not isinstance(candidates, list) or not isinstance(context, dict):
@@ -567,7 +567,8 @@ def rank_candidates(profile: dict, payload: dict) -> dict:
                 "novel": novel,
                 "evidence_level": evidence_level,
                 "reasons": evidence or ["neutral_baseline"],
-                "requires_confirmation_as_novel": novel,
+                "requires_post_submit_disclosure": novel,
+                "user_confirmation_required": False,
             }
         )
         ranked.append(candidate)
@@ -592,8 +593,8 @@ def remove_matching_dish(items: list, dish: str) -> list:
 
 
 def apply_delta(profile: dict, delta: dict) -> tuple[dict, dict]:
-    if profile.get("schema_version") != 5:
-        raise ValueError("profile schema_version must be 5")
+    if profile.get("schema_version") != 6:
+        raise ValueError("profile schema_version must be 6")
     event_id = nonempty_string(delta.get("event_id"), "delta.event_id")
     if delta.get("confirmed_by_user") is not True:
         raise ValueError("delta.confirmed_by_user must be true")
@@ -755,8 +756,8 @@ def apply_delta(profile: dict, delta: dict) -> tuple[dict, dict]:
 
 
 def summarize(profile: dict) -> dict:
-    if profile.get("schema_version") != 5:
-        raise ValueError("profile schema_version must be 5")
+    if profile.get("schema_version") != 6:
+        raise ValueError("profile schema_version must be 6")
     explicit = profile["preferences"]["explicit"]
     inferred = profile["preferences"]["inferred"]
     logistics = profile["logistics_preferences"]
@@ -800,7 +801,7 @@ def summarize(profile: dict) -> dict:
         "explicit_logistics": logistics.get("explicit_contexts", []),
         "pickup_rankings": logistics.get("explicit_pickup_rankings", {}),
         "usage": [
-            "按我的偏好订下一个可订周，提交前让我确认",
+            "按我的偏好订下一个可订周，完成后告诉我结果",
             "查看我的订餐偏好",
             "纠正偏好：我不喜欢某道菜",
             "忘记某道菜或重置全部偏好",

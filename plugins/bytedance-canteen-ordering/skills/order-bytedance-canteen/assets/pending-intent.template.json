@@ -15,8 +15,8 @@
     "next_check_at": null
   },
   "occupied_slots": [],
-  "confirmation": {
-    "obtained": false,
-    "scope": "execution_manifest"
+  "normal_order": {
+    "authorization": "delegated",
+    "receipt": "after_submit"
   }
 }

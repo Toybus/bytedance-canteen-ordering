@@ -1,5 +1,5 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "identity": {
     "timezone": "America/Los_Angeles",
     "default_building": ""
@@ -15,12 +15,12 @@
     "open_check_grace_minutes": 2,
     "retry_minutes": 15,
     "max_open_delay_hours": 4,
-    "confirmation_scope": "execution_manifest"
+    "confirmation_scope": "post_submit_receipt"
   },
   "interaction_policy": {
     "selection_mode": "autonomous",
     "review_mode": "exceptions_only",
-    "normal_order_confirmation": "single_execution_manifest",
+    "normal_order_confirmation": "post_submit_receipt",
     "replacement_confirmation": "single_exact_swap",
     "user_response_token": "✅"
   },
@@ -32,6 +32,15 @@
   "experience_state": {
     "onboarding_version_shown": 0,
     "onboarding_shown_at": null
+  },
+  "transaction_policy": {
+    "normal_order_mode": "submit_then_report",
+    "planning_scope": "all_requested_unoccupied_slots",
+    "batch_order": ["lunch", "dinner"],
+    "cross_batch_user_pause": "forbidden",
+    "verify_each_batch": true,
+    "final_receipt_after_all_batches": true,
+    "occupied_slot_behavior": "preserve"
   },
   "monitoring_policy": {
     "activation": "offer_for_provisional",
@@ -141,10 +150,10 @@
     "prefer_known_good_dishes_over_novel_candidates": true,
     "do_not_generalize_specific_dish_history_to_broad_protein": true,
     "known_bad_pickup_slots": [],
-    "require_exception_confirmation": true
+    "require_exception_confirmation": false
   },
   "confirmation_policy": {
-    "submit": "required",
+    "submit": "delegated",
     "cancel": "required",
     "release": "required"
   },

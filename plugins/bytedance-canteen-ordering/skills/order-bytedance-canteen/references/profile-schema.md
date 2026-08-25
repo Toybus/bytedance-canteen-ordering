@@ -33,7 +33,7 @@ Default root:
 
 ### `schema_version`
 
-Integer schema version. Current value: `5`.
+Integer schema version. Current value: `6`.
 
 ### `identity`
 
@@ -55,17 +55,17 @@ This rule predicts when to retry. The live page remains authoritative.
 - `open_check_grace_minutes`: delay after expected open before the first check.
 - `retry_minutes`: interval while the page is unexpectedly closed.
 - `max_open_delay_hours`: bounded retry horizon before `window_anomaly`.
-- `confirmation_scope`: `execution_manifest`.
+- `confirmation_scope`: `post_submit_receipt` for ordinary new orders.
 
 ### `interaction_policy`
 
 - `selection_mode`: `autonomous`; routine meal choice belongs to the agent.
 - `review_mode`: `exceptions_only`.
-- `normal_order_confirmation`: `single_execution_manifest`.
+- `normal_order_confirmation`: `post_submit_receipt`.
 - `replacement_confirmation`: `single_exact_swap`.
 - `user_response_token`: compact preferred acknowledgement such as `✅`.
 
-This policy reduces review work but does not remove action-time transaction confirmation.
+This policy delegates policy-compliant new orders in empty slots. It does not authorize cancellation, release, or replacement of an existing order.
 
 ### `experience_policy` and `experience_state`
 
@@ -73,6 +73,18 @@ This policy reduces review work but does not remove action-time transaction conf
 - `show_preference_delta`: show explicit corrections as a small before/after receipt.
 - `next_actions_limit`: maximum number of contextual next actions in a completion message.
 - `onboarding_version_shown` and `onboarding_shown_at`: prevent repetitive first-use explanations while allowing a later material onboarding update.
+
+### `transaction_policy`
+
+- `normal_order_mode`: `submit_then_report`;
+- `planning_scope`: `all_requested_unoccupied_slots`;
+- `batch_order`: lunch, then dinner;
+- `cross_batch_user_pause`: `forbidden`;
+- `verify_each_batch`: true;
+- `final_receipt_after_all_batches`: true;
+- `occupied_slot_behavior`: `preserve`.
+
+Lunch and dinner remain separate Aplus batches, but they are one uninterrupted user request. Plan both before cart work and do not send a user-facing message between them.
 
 ### `monitoring_policy`
 
@@ -152,11 +164,11 @@ A replacement, cancellation, release, or stock substitution is only a calibratio
 - `prefer_known_good_dishes_over_novel_candidates` must be true;
 - `do_not_generalize_specific_dish_history_to_broad_protein` must be true;
 - `known_bad_pickup_slots`;
-- `require_exception_confirmation`.
+- `require_exception_confirmation`: false; omit an unsafe slot and report it afterward instead of pausing the rest of the ordinary order.
 
 ### `confirmation_policy`
 
-Use `required` for submit, cancel, and release. Delegated selection changes interaction cost, not the external-side-effect boundary.
+Use `delegated` for ordinary submit and `required` for cancel and release. Replacement also follows `interaction_policy.replacement_confirmation: single_exact_swap`.
 
 ### `paths`
 
@@ -190,9 +202,9 @@ Create `pending-intent.json` only while work waits for setup, authentication, me
 - current lifecycle state and reason;
 - next check time when known;
 - occupied-slot snapshot;
-- confirmation status.
+- delegated normal-order authorization and post-submit receipt status.
 
-Never set confirmation status to true before the concrete plan has been shown and authorized. Do not store credentials or browser session data.
+Pending normal-order intent remains delegated when resumed. It never authorizes cancel, release, or replacement. Do not store credentials or browser session data.
 
 ## Preference update rules
 
@@ -205,11 +217,12 @@ Validate after every structural edit.
 
 ## Migration
 
-For an existing schema-v3 or v4 profile, migrate one version at a time:
+For an existing schema-v3, v4, or v5 profile, migrate one version at a time:
 
 ```bash
 python3 scripts/migrate_profile_v4.py --profile <canonical-profile>
 python3 scripts/migrate_profile_v5.py --profile <canonical-profile>
+python3 scripts/migrate_profile_v6.py --profile <canonical-profile>
 python3 scripts/validate_config.py --profile <canonical-profile>
 ```
 

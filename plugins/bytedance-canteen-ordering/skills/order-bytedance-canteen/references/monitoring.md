@@ -80,17 +80,20 @@ Never store credentials, cookies, or browser state.
 6. Resolve the observation with `scripts/resolve_monitor_action.py`.
 7. If no actionable candidate exists, persist the observation and compute one next check.
 
-For `improve_existing`, notify only when the candidate clears `minimum_improvement_points`. For `fill_missing`, any policy-compliant available candidate may produce an exact submission manifest.
+For `improve_existing`, notify only when the candidate clears `minimum_improvement_points`. For `fill_missing`, any policy-compliant available candidate may be submitted under the delegated normal-order policy and reported afterward.
 
 ## Missing-slot submission
 
 When `fill_missing` finds a candidate:
 
-1. Show one exact execution manifest containing date, meal, dish, building, pickup point, time, and anomalies.
-2. Keep monitoring while confirmation is pending.
-3. After confirmation, revalidate that exact candidate.
-4. Submit it once and verify it in My Orders.
-5. If it disappeared, submit nothing, return to `active`, and continue until the stop boundary.
+1. Revalidate the exact candidate, date, meal, building, pickup point, time, and anomaly state.
+2. Submit it once and verify it in My Orders.
+3. Send a post-submit receipt with the exact result and relevant preference basis.
+4. If it disappeared, submit nothing, return to `active`, and continue until the stop boundary.
+
+This path only fills an empty requested slot. It never cancels, releases, or replaces an existing order.
+
+When loading an older schema-v2 `fill_missing` monitor in `submit_approval_pending`, run `migrate_monitor_v2.py` once. It must discard the stale candidate, return the monitor to `active`, and schedule an immediate live re-check; it must not wait forever for the removed normal-submit confirmation.
 
 ## Existing-order swap
 

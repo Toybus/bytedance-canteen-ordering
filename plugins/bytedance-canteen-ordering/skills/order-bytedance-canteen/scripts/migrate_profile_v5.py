@@ -198,6 +198,12 @@ def migrate(profile: dict, template: dict) -> dict:
     decision = result["decision_policy"]
     decision["prefer_known_good_dishes_over_novel_candidates"] = True
     decision["do_not_generalize_specific_dish_history_to_broad_protein"] = True
+    result["runtime_policy"]["confirmation_scope"] = "execution_manifest"
+    result["interaction_policy"]["normal_order_confirmation"] = (
+        "single_execution_manifest"
+    )
+    result["confirmation_policy"]["submit"] = "required"
+    result.pop("transaction_policy", None)
     result["schema_version"] = 5
     return result
 

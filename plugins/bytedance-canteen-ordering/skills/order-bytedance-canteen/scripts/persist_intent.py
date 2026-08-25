@@ -86,9 +86,9 @@ def main() -> int:
             "next_check_at": args.next_check_at,
         },
         "occupied_slots": args.occupied_slot,
-        "confirmation": {
-            "obtained": False,
-            "scope": "execution_manifest",
+        "normal_order": {
+            "authorization": "delegated",
+            "receipt": "after_submit",
         },
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)

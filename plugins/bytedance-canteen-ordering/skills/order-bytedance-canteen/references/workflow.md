@@ -18,10 +18,10 @@ intent_captured
      -> ready_to_plan/partial_fill
         -> menus_sampled
         -> plan_built
-        -> carts_staged
-        -> execution_manifest_confirmed
-        -> batches_submitted
-        -> my_orders_verified
+        -> lunch_staged -> lunch_submitted -> lunch_verified
+        -> dinner_staged -> dinner_submitted -> dinner_verified
+        -> all_attempted_rows_verified
+        -> post_submit_receipt_emitted
         -> run_recorded
         -> provisional_orders_detected
            -> monitors_created
@@ -39,7 +39,7 @@ Persist the request before any setup or waiting step. Resolve:
 - current occupied slots;
 - restrictions and explicit corrections;
 - preference confidence and whether one optional cold-start question is useful;
-- interaction policy and action-time confirmation scope.
+- normal-order delegation and destructive-action confirmation scope.
 
 Default to open workdays only. A closed Friday dinner or another unavailable slot is an omission, not an execution error.
 
@@ -137,7 +137,7 @@ Then rank by:
 
 Prefer a clearly better dish over a small logistics difference. Prefer the better pickup time when dishes are similar. Penalize known unreliable pickup slots, but do not treat a released order as dish dislike. Never infer a broad protein preference from exact dish history.
 
-Use `scripts/preference_engine.py rank` when Python is available. A novel candidate with only broad evidence is `provisional`; it may be shown as a low-confidence alternative but cannot displace a known-good candidate. If no known-good option is available, it can enter the execution manifest as an explicit provisional fallback.
+Use `scripts/preference_engine.py rank` when Python is available. A novel candidate with only broad evidence is `provisional`; it may be shown as a low-confidence alternative but cannot displace a known-good candidate. If no known-good option is available, it may be selected as a provisional fallback and must be disclosed in the post-submit receipt.
 
 Record a relative 0–100 suitability score and assign:
 
@@ -149,6 +149,8 @@ The score is for relative choice and monitoring thresholds, not nutrition or med
 
 ## 7. Build carts
 
+Freeze one complete plan for every requested open, unoccupied lunch and dinner slot before adding any selection. This prevents a user-facing pause after the lunch cart has already been staged.
+
 Add reversible selections only after verifying the active target site.
 
 Observed behavior may require:
@@ -158,7 +160,7 @@ Observed behavior may require:
 - clicking a real radio/control rather than the title;
 - confirming a pickup-point change dialog.
 
-The page can accumulate dates in one meal-type cart. A non-empty lunch cart may silently block dinner selection. Submit or clear the lunch batch before staging dinner.
+The page can accumulate dates in one meal-type cart. A non-empty lunch cart may silently block dinner selection, so the batches cannot reliably coexist. Stage, verify, submit, and verify lunch first; then immediately do the same for dinner. This is one uninterrupted normal-order transaction from the user's perspective: send no plan update, candidate question, or confirmation request between batches.
 
 ## 8. Verify cart details
 
@@ -171,15 +173,15 @@ For each row compare:
 - pickup point;
 - displayed time.
 
-If pickup label and cart time conflict, disclose the mismatch. Keep the row only after execution-manifest confirmation.
+If pickup label and cart time conflict, treat it as a live anomaly. Continue only when the final pickup time can be determined safely from the page; otherwise omit that row and disclose it after all safe batches have been attempted.
 
-## 9. Confirm and submit
+## 9. Submit without a conversation pause
 
-The profile delegates routine selection to the agent. Do not ask the user to choose among ordinary candidates or approve each row separately.
+The profile delegates routine selection and ordinary submission to the agent. The user's request to order the target coverage is the authorization for policy-compliant new orders in empty slots. Do not ask the user to choose among ordinary candidates, approve rows, or confirm a pre-submit manifest.
 
-After concrete dishes, dates, pickup points, times, substitutions, unavailable slots, and anomalies are known, send one compact execution manifest for all intended lunch and dinner batches. A single response such as `✅`, “下单吧”, or “确认提交以上订单” authorizes that exact manifest.
+Before the first cart action, hold the complete lunch-and-dinner plan internally. Execute meal-type batches in `transaction_policy.batch_order`. Verify each batch at the point of effect, then continue directly to the next batch without a user-facing message.
 
-Approval of preferences, autonomous selection, future automation, or an unknown future menu is not transaction authorization. If stock changes materially after confirmation, stop and issue a new manifest instead of silently substituting.
+If stock changes during execution, rerank that empty slot from the already sampled, policy-compliant candidates. Never overwrite an occupied slot. Omit a slot rather than violate an explicit dislike, restriction, building scope, or safety boundary, and explain the omission in the final receipt.
 
 Immediately before submit, re-read:
 
@@ -188,7 +190,9 @@ Immediately before submit, re-read:
 - submit visual enabled state;
 - modal or overlay state.
 
-Submit one meal-type batch at a time and record the result count.
+Submit one meal-type batch at a time and record the result count. An isolated batch failure does not justify abandoning a still-safe other meal type; continue it and report the partial result. Authentication loss, ambiguous active date/meal, or unstable page state stops further transactions until recovered.
+
+Use `scripts/resolve_batch_execution.py` when a deterministic next-step check is useful. Any `executing` result has `conversation_boundary: false`; only the final receipt or a safety recovery may cross that boundary.
 
 ## 10. Verify point of effect
 
@@ -208,7 +212,7 @@ Write one JSON run record per target week under `run_log_dir`. Include:
 - profile schema version;
 - target week;
 - lifecycle result;
-- confirmation evidence summary;
+- normal-order delegation evidence and any separate destructive-action confirmation;
 - existing and newly submitted orders;
 - selection score and `preferred`/`acceptable`/`provisional` quality for new orders;
 - substitutions and exceptions;

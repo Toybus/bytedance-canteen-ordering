@@ -75,8 +75,8 @@ def main() -> int:
             state, action = "active", "continue_monitoring"
         else:
             state, action = (
-                "submit_approval_pending",
-                "emit_release_submit_manifest",
+                "submitting",
+                "submit_released_candidate_then_report",
             )
     else:
         if current_score is None:
@@ -108,9 +108,11 @@ def main() -> int:
             )
 
     confirmation_scope = {
-        "submit_approval_pending": "single_execution_manifest",
         "swap_approval_pending": "single_exact_swap",
     }.get(state)
+    receipt_scope = "post_submit_receipt" if (
+        args.mode == "fill_missing" and state == "submitting"
+    ) else None
     print(
         json.dumps(
             {
@@ -124,6 +126,7 @@ def main() -> int:
                 "minimum_improvement_points": threshold,
                 "confirmation_required": confirmation_scope is not None,
                 "confirmation_scope": confirmation_scope,
+                "receipt_scope": receipt_scope,
             },
             ensure_ascii=False,
             indent=2,

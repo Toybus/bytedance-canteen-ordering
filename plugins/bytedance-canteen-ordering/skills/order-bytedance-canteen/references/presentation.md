@@ -6,14 +6,14 @@ Make every run understandable without exposing internal mechanics. The user shou
 
 1. what business state was reached;
 2. which relevant preferences guided the result;
-3. whether anything needs confirmation or recovery;
+3. whether anything needs acknowledgement, destructive-action confirmation, or recovery;
 4. who owns the next action and when it will happen.
 
 Do not dump the full profile. Show only preferences relevant to this request, plus any new or changed preference.
 
 ## First-use receipt
 
-After readiness and history initialization, show a compact receipt before continuing the original request:
+After readiness and history initialization, show a compact receipt. If an ordering request is active, do not create a conversation boundary here: continue the order and merge this content into the final verified post-submit receipt.
 
 ```text
 字节餐厅已初始化
@@ -24,7 +24,8 @@ After readiness and history initialization, show a compact receipt before contin
 - 常选餐食：[展示有完成次数支撑的具体餐食]
 - 履约习惯：[仅展示匹配工作日/午晚餐的楼层或时间偏好]
 - 当前置信度：[历史完整 / 历史有限 / 新用户]
-- 默认方式：我自主选餐；具体购物车提交前统一确认一次
+- 默认方式：我自主选餐并完成普通订餐，全部核验后统一告诉你结果
+- 安全边界：取消、释放或换掉已有订单前，仍会让你确认
 
 你之后可以直接说：
 “订下周工作日午晚餐”
@@ -35,12 +36,12 @@ After readiness and history initialization, show a compact receipt before contin
 
 If history is empty, say that preferences are starting from a neutral baseline. Do not invent affinities.
 
-If history is incomplete, continue the original order and ask at most one compact optional question:
+If history is incomplete, continue the original order and ask at most one compact optional question. Do not wait for its answer before conservative planning or ordinary submission; for an active order, append it to the final receipt only when it remains useful:
 
 ```text
 历史还不完整，但不会影响这次订餐。你可以补充一句：
 “明确不吃/忌口；特别喜欢的具体餐食；通常使用的楼层或时间”。
-也可以跳过，我会采用保守推荐并在提交前让你确认。
+也可以跳过，我会采用保守推荐，完成后告诉你结果。
 ```
 
 After the first safe ordering attempt, ask one retrospective question only when the final choice creates useful ambiguity:
@@ -52,20 +53,20 @@ After the first safe ordering attempt, ask one retrospective question only when 
 
 After showing onboarding, update `experience_state.onboarding_version_shown` and `onboarding_shown_at`. Show it again only after a material onboarding-version change or explicit re-initialization.
 
-## Normal planning receipt
+## Normal ordering receipt
 
-Lead with coverage and the action boundary:
+Send this only after all lunch and dinner batches have been attempted and verified. Lead with coverage and the safety boundary:
 
 ```text
-下周 9 个可订餐段已规划，2 个已有订单保持不动，7 个已加入购物车。
+已完成并在“我的订单”核验：新增 7 餐，保留 2 餐，缺失 0 餐。
 这次主要按“[具体已知餐食]、[适用的履约习惯]、避免周内重复”选择。
 
-[compact execution manifest]
+[compact verified result covering lunch and dinner]
 
-回复 ✅ 后，我只会提交上面这 7 项。
+普通订餐已结束；任何取消、释放或换餐仍会在操作前让你确认。
 ```
 
-Do not ask the user to approve preferences separately from the exact cart.
+Do not ask for an acknowledgement before continuing or treat it as transaction authorization. If the user corrects the result, treat the correction as a new request and preserve all unaffected orders.
 
 ## Waiting or release-only receipt
 
@@ -78,7 +79,7 @@ Translate timing into ownership:
 
 ```text
 周四晚餐的常规订餐已截止，但释放库存仍可能临时出现。
-我会按自适应频率监控到取餐前 15 分钟；有餐时给你一份精确提交清单，
+我会按自适应频率监控到取餐前 15 分钟；有符合你偏好和限制的餐时直接提交并告诉你，
 没有餐时不会打扰你。
 ```
 
@@ -113,7 +114,7 @@ For a missing slot:
 
 ```text
 周四晚餐目前缺餐，常规窗口已关闭。
-已进入释放库存监控；发现可订餐后先给你精确提交清单，不会替你提交未知餐品。
+已进入释放库存监控；发现符合已知偏好和限制的可订餐后会直接提交并回报，不会取消任何已有订单。
 ```
 
 ## Exact swap receipt

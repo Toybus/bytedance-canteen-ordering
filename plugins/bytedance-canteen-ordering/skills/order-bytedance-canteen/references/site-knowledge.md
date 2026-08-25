@@ -67,7 +67,7 @@ Pickup labels may encode a floor and time, for example `Fxx 12:00 Pickup`.
 
 - The cart can accumulate multiple dates for one meal type.
 - A non-empty lunch cart can block dinner selections without an explicit error.
-- Build and submit lunch and dinner as separate batches.
+- Plan both meal types before cart work. Build, submit, and verify them as separate batches in one uninterrupted run; never ask the user a routine question between batches.
 
 ### Replacement is non-atomic
 

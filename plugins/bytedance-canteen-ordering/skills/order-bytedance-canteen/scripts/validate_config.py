@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 POLICIES = {"all_open_workdays", "only_requested", "disabled"}
-CONFIRMATION_VALUES = {"required"}
+CONFIRMATION_VALUES = {"delegated", "required"}
 MONITOR_ACTIVATIONS = {
     "disabled",
     "offer_for_provisional",
@@ -22,7 +22,6 @@ MONITOR_ACTIVATIONS = {
 MONITOR_STATES = {
     "active",
     "checking",
-    "submit_approval_pending",
     "swap_approval_pending",
     "submitting",
     "swapping",
@@ -143,8 +142,8 @@ def validate_completed_affinity(item: object, where: str) -> None:
 
 
 def validate_profile(profile: dict) -> None:
-    if profile.get("schema_version") != 5:
-        raise ValueError("schema_version must be 5")
+    if profile.get("schema_version") != 6:
+        raise ValueError("schema_version must be 6")
 
     identity = require(profile, "identity", dict, "profile")
     timezone = require(identity, "timezone", str, "profile.identity")
@@ -218,17 +217,17 @@ def validate_profile(profile: dict) -> None:
             raise ValueError(f"profile.runtime_policy.{key} must be {qualifier}")
     if (
         require(runtime, "confirmation_scope", str, "profile.runtime_policy")
-        != "execution_manifest"
+        != "post_submit_receipt"
     ):
         raise ValueError(
-            "profile.runtime_policy.confirmation_scope must be execution_manifest"
+            "profile.runtime_policy.confirmation_scope must be post_submit_receipt"
         )
 
     interaction = require(profile, "interaction_policy", dict, "profile")
     expected_interaction = {
         "selection_mode": "autonomous",
         "review_mode": "exceptions_only",
-        "normal_order_confirmation": "single_execution_manifest",
+        "normal_order_confirmation": "post_submit_receipt",
         "replacement_confirmation": "single_exact_swap",
     }
     for key, expected in expected_interaction.items():
@@ -246,6 +245,33 @@ def validate_profile(profile: dict) -> None:
         raise ValueError(
             "profile.interaction_policy.user_response_token must not be empty"
         )
+
+    transaction = require(profile, "transaction_policy", dict, "profile")
+    expected_transaction = {
+        "normal_order_mode": "submit_then_report",
+        "planning_scope": "all_requested_unoccupied_slots",
+        "cross_batch_user_pause": "forbidden",
+        "occupied_slot_behavior": "preserve",
+    }
+    for key, expected in expected_transaction.items():
+        value = require(transaction, key, str, "profile.transaction_policy")
+        if value != expected:
+            raise ValueError(
+                f"profile.transaction_policy.{key} must be {expected}"
+            )
+    batch_order = require(
+        transaction,
+        "batch_order",
+        list,
+        "profile.transaction_policy",
+    )
+    if batch_order != ["lunch", "dinner"]:
+        raise ValueError(
+            "profile.transaction_policy.batch_order must be ['lunch', 'dinner']"
+        )
+    for key in ("verify_each_batch", "final_receipt_after_all_batches"):
+        if require(transaction, key, bool, "profile.transaction_policy") is not True:
+            raise ValueError(f"profile.transaction_policy.{key} must be true")
 
     experience = require(profile, "experience_policy", dict, "profile")
     if (
@@ -814,6 +840,10 @@ def validate_profile(profile: dict) -> None:
         raise ValueError(
             "profile.decision_policy.do_not_generalize_specific_dish_history_to_broad_protein must be true"
         )
+    if decision["require_exception_confirmation"]:
+        raise ValueError(
+            "profile.decision_policy.require_exception_confirmation must be false"
+        )
     require_unique_strings(
         require(decision, "known_bad_pickup_slots", list, "profile.decision_policy"),
         "profile.decision_policy.known_bad_pickup_slots",
@@ -827,6 +857,13 @@ def validate_profile(profile: dict) -> None:
             raise ValueError(
                 f"profile.confirmation_policy.{action} must be one of "
                 f"{sorted(CONFIRMATION_VALUES)}"
+            )
+    if confirmation["submit"] != "delegated":
+        raise ValueError("profile.confirmation_policy.submit must be delegated")
+    for action in ("cancel", "release"):
+        if confirmation[action] != "required":
+            raise ValueError(
+                f"profile.confirmation_policy.{action} must be required"
             )
 
     paths = require(profile, "paths", dict, "profile")

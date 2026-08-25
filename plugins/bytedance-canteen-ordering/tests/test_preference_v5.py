@@ -133,12 +133,20 @@ class MigrationAndValidationTests(unittest.TestCase):
                 ],
                 ["F20"],
             )
+            current = root / "v6.json"
+            run_script(
+                "migrate_profile_v6.py",
+                "--profile",
+                output,
+                "--output",
+                current,
+            )
             validation = subprocess.run(
                 [
                     "python3",
                     str(SCRIPTS / "validate_config.py"),
                     "--profile",
-                    str(output),
+                    str(current),
                 ],
                 text=True,
                 capture_output=True,
@@ -698,7 +706,7 @@ class PortabilityTests(unittest.TestCase):
             self.assertNotIn(str(root), report_text)
             self.assertFalse(report["privacy"]["contains_orders"])
             self.assertFalse(report["privacy"]["contains_preferences"])
-            self.assertEqual(report["environment"]["profile"]["schema_version"], 5)
+            self.assertEqual(report["environment"]["profile"]["schema_version"], 6)
 
 
 class FreshUserFlowTests(unittest.TestCase):
@@ -803,7 +811,12 @@ class FreshUserFlowTests(unittest.TestCase):
             )
             self.assertEqual(ranking["ranked"][0]["dish"], "Roast Chicken")
             self.assertEqual(ranking["ranked"][0]["quality"], "preferred")
-            self.assertTrue(ranking["ranked"][1]["requires_confirmation_as_novel"])
+            self.assertTrue(
+                ranking["ranked"][1]["requires_post_submit_disclosure"]
+            )
+            self.assertFalse(
+                ranking["ranked"][1]["user_confirmation_required"]
+            )
 
 
 if __name__ == "__main__":

@@ -43,16 +43,16 @@ Perform these checks in order:
 9. Resolve the user-wide canonical profile before considering any current-project profile.
 10. If only a legacy project profile exists, migrate it to canonical state. If both exist, conservatively merge explicit preferences and the more complete history.
 11. Verify the live building is `Lincoln Square North`. For another building, stop before transaction and state that this release has not verified it.
-12. Bootstrap the portable data directory when no profile exists and validate schema v5. Migrate v3 to v4 and then v4 to v5 only when those versions are present.
+12. Bootstrap the portable data directory when no profile exists and validate schema v6. Migrate v3 to v4, v4 to v5, and v5 to v6 only when those versions are present.
 13. Read available order history. Treat empty or partial history as a valid new-user state, not an error.
-14. When history is insufficient, ask at most one compact optional preference question; skipping must not prevent conservative planning and the final execution confirmation.
+14. When history is insufficient, ask at most one compact optional preference question. If an ordering request is active, do not wait for an answer: continue conservative planning and ordinary submission, then include the question with the final verified receipt when it remains useful.
 15. Continue the original request without asking the user to repeat it.
 
 ## Per-run gate
 
 Before each ordering run, verify:
 
-- the canonical profile exists and passes schema-v5 structural validation;
+- the canonical profile exists and passes schema-v6 structural validation;
 - the controlled browser is reachable and authenticated;
 - the building is supported and the target week is explicit;
 - My Orders can be evaluated;
@@ -72,8 +72,8 @@ Good recovery messages contain:
 Examples:
 
 - “订餐请求已保存；请在当前 Chrome 登录 Aplus。登录后回复‘继续’，我会从订单查重开始。”
-- “下周菜单预计周二 10:00 开放；请求已保存并安排 10:02 自动重试。届时我会先查重，再生成具体菜单供确认。”
+- “下周菜单预计周二 10:00 开放；请求已保存并安排 10:02 自动重试。届时我会先查重，完成普通订餐后统一回报。”
 
 Do not say only “无法继续” or expose an internal tool failure without translating it into the recoverable business state.
 
-Use [presentation.md](presentation.md) after first-use setup so the user sees the saved preference summary, the confirmation boundary, and a few example requests.
+Use [presentation.md](presentation.md) after first-use setup so the user sees the saved preference summary, the destructive-action confirmation boundary, and a few example requests. When setup is part of an active ordering request, merge this summary into the final verified post-submit receipt instead of pausing before cart work.

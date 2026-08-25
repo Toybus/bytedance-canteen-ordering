@@ -74,8 +74,36 @@ def main() -> int:
     version = original.get("schema_version")
     if version not in {1, 2}:
         parser.error(f"unsupported monitor schema_version: {version}")
+    recovered_legacy_submit = False
     if version == 2:
-        result = original
+        result = copy.deepcopy(original)
+        if (
+            result.get("mode") == "fill_missing"
+            and result.get("state") == "submit_approval_pending"
+        ):
+            recovered_legacy_submit = True
+            recovered_at = args.now or datetime.now().astimezone().isoformat()
+            result["state"] = "active"
+            result["best_observation"] = None
+            result["pending_swap"] = None
+            schedule = result.setdefault("schedule", {})
+            schedule["next_check_at"] = recovered_at
+            reasons = schedule.setdefault("reason_codes", [])
+            if "legacy_submit_confirmation_removed" not in reasons:
+                reasons.append("legacy_submit_confirmation_removed")
+            automation = result.setdefault("automation", {})
+            automation["scheduled_for"] = recovered_at
+            automation["status"] = "migration_requires_reschedule"
+            result.setdefault("events", []).append(
+                {
+                    "at": recovered_at,
+                    "type": "legacy_submit_confirmation_removed",
+                    "note": (
+                        "Discarded the stale candidate and resumed live "
+                        "inventory checking under delegated missing-slot submit."
+                    ),
+                }
+            )
     else:
         if not args.regular_order_cutoff_at or not args.pickup_start_at:
             parser.error(
@@ -84,8 +112,8 @@ def main() -> int:
                 "from the live meal slot"
             )
         profile = load(args.profile.expanduser().resolve())
-        if profile.get("schema_version") not in {4, 5}:
-            parser.error("migrate the profile to schema v4 or v5 first")
+        if profile.get("schema_version") not in {4, 5, 6}:
+            parser.error("migrate the profile to schema v4, v5, or v6 first")
         timezone = ZoneInfo(profile["identity"]["timezone"])
         now = (
             parse_datetime(args.now, timezone)
@@ -195,8 +223,9 @@ def main() -> int:
         return 0
 
     backup = None
-    if destination == source and version == 1:
-        backup = source.with_name(f"{source.name}.v1.bak")
+    if destination == source and (version == 1 or recovered_legacy_submit):
+        suffix = "v1" if version == 1 else "v2-predelegation"
+        backup = source.with_name(f"{source.name}.{suffix}.bak")
         if not backup.exists():
             shutil.copy2(source, backup)
     write_atomic(destination, result)
@@ -204,7 +233,9 @@ def main() -> int:
         json.dumps(
             {
                 "status": (
-                    "already_current" if version == 2 else "migrated"
+                    "recovered_legacy_submit_confirmation"
+                    if recovered_legacy_submit
+                    else ("already_current" if version == 2 else "migrated")
                 ),
                 "monitor_path": str(destination),
                 "backup_path": str(backup) if backup else None,
